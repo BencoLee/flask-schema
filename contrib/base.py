@@ -19,31 +19,33 @@ class FlaskAPIClass(object):
 
         obj_members = filter(lambda item: not getattr(item[1], "__isabstractmethod__", False),
                              inspect.getmembers(self, predicate=inspect.ismethod))
+        url_prefix = blueprint.url_prefix
+        blueprint_name = blueprint.name
         if resource:
-            rules = self._deal_with_singluar_resource(resource, decorators, obj_members)
+            rules = self._deal_with_singluar_resource(url_prefix, resource, decorators, obj_members)
         elif resources:
-            rules = self._deal_with_plural_resources(resources, decorators, obj_members)
+            rules = self._deal_with_plural_resources(url_prefix, resources, decorators, obj_members)
 
         rules = rules or []
         for rule, name, view_func in rules:
             flask_app.add_url_rule(
                 rule=rule,
-                endpoint="_".join((blueprint.name, name)),
+                endpoint="_".join((blueprint_name, name)),
                 view_func=view_func
             )
         return rules
 
-    def _deal_with_singluar_resource(self, resource, decorators, members):
+    def _deal_with_singluar_resource(self, url_prefix, resource, decorators, members):
         rules = []
         members = members or []
 
         for name, method in members:
             if name in self.register_method:
-                rule = "/{}".format(resource)
+                rule = "{}/{}".format(url_prefix, resource)
                 http_method = self.register_method[name]
                 view_func = self._make_function(http_method, name, method, decorators)
             elif getattr(method, "__is_action__", False) is True:
-                rule = "/{}".format(resource)
+                rule = "{}/{}".format(url_prefix, resource)
                 name = getattr(method, "__action_name__")
                 http_method = getattr(method, "__action_method__")
                 view_func = self._make_function(http_method, name, method, decorators)
@@ -52,20 +54,20 @@ class FlaskAPIClass(object):
             rules.append((rule, name, view_func))
         return rules
 
-    def _deal_with_plural_resources(self, resources, decorators, members):
+    def _deal_with_plural_resources(self, url_prefix, resources, decorators, members):
         rules = []
         members = members or []
         for name, method in members:
             if name in self.register_method:
                 if name in ("index", ):
-                    rule = "/{}".format(resources)
+                    rule = "{}/{}".format(url_prefix, resources)
                 else:
-                    rule = "/{}/<int:id>".format(resources)
+                    rule = "{}/{}/<id>".format(url_prefix, resources)
                 http_method = self.register_method[name]
-                view_func =- self._make_function(http_method, name, method, decorators)
+                view_func = self._make_function(http_method, name, method, decorators)
             elif getattr(method, "__is_action__", False) is True:
                 name = getattr(method, "__action_name__")
-                rule = "/{}/<int:id>/{}".format(resources, name)
+                rule = "{}/{}/<id>/{}".format(url_prefix, resources, name)
                 http_method = getattr(method, "__action_method__")
                 view_func = self._make_function(http_method, name, method, decorators)
             else:
@@ -137,6 +139,7 @@ class Jar(object):
     def __init__(self, flask_app, name):
         self.name = name
         self.flask_app = flask_app
+        self.register_class = dict()
 
     def register(self, blueprint=None, resource=None, resources=None,
                  input_schema=None, output_schema=None,
@@ -151,7 +154,12 @@ class Jar(object):
         kwargs = kwargs or {}
         decorators = decorators or []
         def wrapper(obj_class):
-            print obj_class.__name__
+            if obj_class.__name__ not in self.register_class:
+                self.register_class[obj_class.__name__] = blueprint
+            elif self.register_class.get(obj_class.__name__, None):
+                if self.register_class[obj_class.__name__] is not blueprint:
+                    raise ValueError("An blueprint should only be registered in a class")
+
             if not issubclass(obj_class, FlaskAPIClass):
                 raise TypeError("objectClass should be inherited FlaskAPIClass")
             obj_instance = obj_class(*args, **kwargs)
