@@ -2,7 +2,7 @@
 # encoding: utf-8
 import inspect
 from abc import abstractmethod
-from flask import Blueprint, request, Response
+from flask import Blueprint, request, Response, jsonify
 
 
 class FlaskAPIClass(object):
@@ -17,13 +17,14 @@ class FlaskAPIClass(object):
         if resource and resources:
             raise ValueError("resource and resources should choose only one as default")
 
-        obj_members = filter(lambda name, method: not getattr(method, "__isabstractmethod__", False),
+        obj_members = filter(lambda item: not getattr(item[1], "__isabstractmethod__", False),
                              inspect.getmembers(self, predicate=inspect.ismethod))
         if resource:
             rules = self._deal_with_singluar_resource(resource, decorators, obj_members)
         elif resources:
             rules = self._deal_with_plural_resources(resources, decorators, obj_members)
 
+        rules = rules or []
         for rule, name, view_func in rules:
             flask_app.add_url_rule(
                 rule=rule,
@@ -49,6 +50,7 @@ class FlaskAPIClass(object):
             else:
                 continue
             rules.append((rule, name, view_func))
+        return rules
 
     def _deal_with_plural_resources(self, resources, decorators, members):
         rules = []
@@ -69,9 +71,23 @@ class FlaskAPIClass(object):
             else:
                 continue
             rules.append((rule, name, view_func))
+        return rules
 
     def _make_function(self, http_method, method_name,
                        origin_method, decorators):
+        res_func = (lambda method_name=method_name, request=request,
+                    origin_method=origin_method, http_method=http_method, **kwargs:
+                    self._execute_function(origin_method, method_name, request, http_method, **kwargs))
+        if decorators:
+            for decorator in decorators:
+                res_func = decorator(res_func)
+        return res_func
+
+    def _execute_function(self, origin_method, method_name, request, http_method, **kwargs):
+        exec_func = getattr(self, method_name)
+        if not (exec_func == origin_method):
+            raise ValueError("this member method has something wrong and don't match")
+
         if http_method in ("POST", "DELETE", "PUT"):
             # if force set True will ignore mimetype, slient set True will
             # return None and no raising error
@@ -79,21 +95,15 @@ class FlaskAPIClass(object):
         else:
             # if http_method is GET will get query data as json
             data = request.args
-        res_func = (lambda method_name=method_name, request=request,
-                    origin_method=origin_method, data=data, **kwargs:
-                    self._execute_function(origin_method, method_name, request, data, **kwargs))
-        if decorators:
-            for decorator in decorators:
-                res_func = decorator(res_func)
-        return res_func
 
-    def _execute_function(self, origin_method, method_name, request, data, **kwargs):
-        exec_func = getattr(self, method_name)
-        if exec_func is not origin_method:
-            raise ValueError("this member method has something wrong and don't match")
-
-        result = exec_func(request, data, **kwargs)
-        return self.web_response(result)
+        result = []
+        http_code = 200
+        try:
+            result = exec_func(request, data, **kwargs)
+        except:
+            # TODO figure out execute error code
+            http_code = 500
+        return self.web_response(result, http_code)
 
     @abstractmethod
     def index(self, web_request, data, **kwargs):
@@ -119,6 +129,7 @@ class FlaskAPIClass(object):
     def web_response(self, result, http_code=200):
         if isinstance(result, Response):
             return result
+        return jsonify(result), http_code
 
 
 class Jar(object):
@@ -127,17 +138,27 @@ class Jar(object):
         self.name = name
         self.flask_app = flask_app
 
-    def register(self, obj_class, blueprint,
-                 resource=None, resources=None,
+    def register(self, blueprint=None, resource=None, resources=None,
                  input_schema=None, output_schema=None,
                  decorators=None, args=None, kwargs=None):
-        if not isinstance(obj_class, FlaskAPIClass):
-            raise TypeError("objectClass should be inherited FlaskAPIClass")
+        """
+        TODO input_schema and output_schema should execute in another threads
+        """
         if not blueprint or not isinstance(blueprint, Blueprint):
             raise TypeError("blueprint should be an instance of Blueprint")
+
         args = args or []
         kwargs = kwargs or {}
         decorators = decorators or []
-        obj_instance = obj_class(*args, **kwargs)
-        obj_instance._register_url_rule(resource, resources, blueprint,
-                                        decorators, self.flask_app)
+        def wrapper(obj_class):
+            print obj_class.__name__
+            if not issubclass(obj_class, FlaskAPIClass):
+                raise TypeError("objectClass should be inherited FlaskAPIClass")
+            obj_instance = obj_class(*args, **kwargs)
+            return self._register(obj_instance, resource, resources,
+                                  blueprint, decorators)
+        return wrapper
+
+    def _register(self, obj_instance, resource, resources, blueprint, decorators):
+        rules = obj_instance._register_url_rule(resource, resources, blueprint,
+                                                decorators, self.flask_app)
