@@ -58,7 +58,7 @@ class SchemaBase(object):
             return False
         else:
             if (self.check_config_schema is False and self.validate_data
-                or self.check_config_schema is True and not self.validate_data):
+                    or self.check_config_schema is True and not self.validate_data):
                 logging.exception("Input validate data should along with config_schema")
                 return False
             validator_executor = Draft4Validator(self.config_schema)

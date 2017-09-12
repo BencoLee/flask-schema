@@ -18,3 +18,29 @@ def test_raise_value_error(schema_base):
     schema_base.config_schema = list()
     with pytest.raises(ValueError):
         schema_base.check_schema()
+
+
+def test_validate_false(schema_base):
+    # One
+    schema_base.config_schema = list()
+    assert schema_base.validate() is False
+
+    # Two
+    config_schema = {
+        "type": "object",
+        "properties": {
+            "index": {
+                "type": "object",
+                "properties": {
+                    "description": "This is index description",
+                    "name": {"type": "string", "minLength": 4},
+                    "age": {"type": "integer", "minimum": 0},
+                    "id": {"type": "integer"}
+                }
+            }
+        }
+    }
+    schema_base.config_schema = config_schema
+    assert schema_base.validate() is False
+
+
