@@ -53,7 +53,7 @@
   "title": "SchemaBase",
   "type": "object",
   "properties": {
-    "name": {"not": [{"type": "array"}, {"type": "null"}]}
+    "name": {"not": [{"type": "array"}, {"type": "null"}]},
     "methods": {"type": "object"},
     "resource": {"type": "string"},
     "resources": {"type": "string"}
@@ -95,8 +95,17 @@
   "additionalProperties": false
 }
 {
-  "valid": { "number": 1600, "street_name": "Pennsylvania", "street_type": "Avenue" },
-  "invalid": { "number": 1600, "street_name": "Pennsylvania", "street_type": "Avenue", "direction": "NW" }
+  "valid": {
+      "number": 1600,
+      "street_name": "Pennsylvania",
+      "street_type": "Avenue"
+  },
+  "invalid": {
+      "number": 1600,
+      "street_name": "Pennsylvania",
+      "street_type": "Avenue",
+      "direction": "NW"
+  }
 }
 ```
 
@@ -113,7 +122,12 @@
   "additionalProperties": true
 }
 {
-  "valid": { "number": 1600, "street_name": "Pennsylvania", "street_type": "Avenue", "direction": "NW" }
+  "valid": {
+      "number": 1600,
+      "street_name": "Pennsylvania",
+      "street_type": "Avenue",
+      "direction": "NW"
+  }
 }
 ```
 
@@ -130,8 +144,18 @@
   "additionalProperties": {"type": "string"}
 }
 {
-  "valid": { "number": 1600, "street_name": "Pennsylvania", "street_type": "Avenue", "direction": "NW" }
-  "invalid": { "number": 1600, "street_name": "Pennsylvania", "street_type": "Avenue", "timestamp":  19930918}
+  "valid": {
+      "number": 1600,
+      "street_name": "Pennsylvania",
+      "street_type": "Avenue",
+      "direction": "NW"
+  }
+  "invalid": {
+      "number": 1600,
+      "street_name": "Pennsylvania",
+      "street_type": "Avenue",
+      "timestamp":  19930918
+  }
 }
 ```
 
@@ -173,10 +197,20 @@
   }
 }
 {
-  "valid1": {"name": "John Doe", "credit_card": 5555555555555555, "billing_address": "555 Debtor's Lane"},
+  "valid1": {
+      "name": "John Doe",
+      "credit_card": 5555555555555555,
+      "billing_address": "555 Debtor's Lane"
+  },
   "valid2": {"name": "John Doe"},
-  "valid3": {"name": "John Doe", "billing_address": "555 Debtor's Lane"},
-  "invalid": {"name": "John Doe", "credit_card": 5555555555555555}
+  "valid3": {
+      "name": "John Doe",
+      "billing_address": "555 Debtor's Lane"
+  },
+  "invalid": {
+      "name": "John Doe",
+      "credit_card": 5555555555555555
+  }
 }
 ```
 
@@ -200,7 +234,7 @@
             "uniqueItems": true
           }
         }
-      }，
+      },
       "show": {
         "properties": {
           "students": {
@@ -438,7 +472,7 @@ Integer表示整形数值
 ```json
 {
   "anyOf": [
-    {"type": "string"}，
+    {"type": "string"},
     {"type": "number"}
   ]
 }
@@ -451,7 +485,7 @@ Integer表示整形数值
 ```json
 {
   "oneOf": [
-    {"type": "string"}，
+    {"type": "string"},
     {"type": "number"}
   ]
 }
