@@ -22,9 +22,11 @@ class FlaskAPIClass(object):
         url_prefix = blueprint.url_prefix
         blueprint_name = blueprint.name
         if resource:
-            rules = self._deal_with_singluar_resource(url_prefix, resource, decorators, obj_members)
+            rules = self._deal_with_singluar_resource(url_prefix, resource,
+                                                      decorators, obj_members)
         elif resources:
-            rules = self._deal_with_plural_resources(url_prefix, resources, decorators, obj_members)
+            rules = self._deal_with_plural_resources(url_prefix, resources,
+                                                     decorators, obj_members)
 
         rules = rules or []
         for rule, name, view_func in rules:
@@ -35,7 +37,8 @@ class FlaskAPIClass(object):
             )
         return rules
 
-    def _deal_with_singluar_resource(self, url_prefix, resource, decorators, members):
+    def _deal_with_singluar_resource(self, url_prefix, resource,
+                                     decorators, members):
         rules = []
         members = members or []
 
@@ -43,18 +46,21 @@ class FlaskAPIClass(object):
             if name in self.register_method:
                 rule = "{}/{}".format(url_prefix, resource)
                 http_method = self.register_method[name]
-                view_func = self._make_function(http_method, name, method, decorators)
+                view_func = self._make_function(http_method, name,
+                                                method, decorators)
             elif getattr(method, "__is_action__", False) is True:
                 rule = "{}/{}".format(url_prefix, resource)
                 name = getattr(method, "__action_name__")
                 http_method = getattr(method, "__action_method__")
-                view_func = self._make_function(http_method, name, method, decorators)
+                view_func = self._make_function(http_method, name,
+                                                method, decorators)
             else:
                 continue
             rules.append((rule, name, view_func))
         return rules
 
-    def _deal_with_plural_resources(self, url_prefix, resources, decorators, members):
+    def _deal_with_plural_resources(self, url_prefix, resources,
+                                    decorators, members):
         rules = []
         members = members or []
         for name, method in members:
@@ -64,12 +70,14 @@ class FlaskAPIClass(object):
                 else:
                     rule = "{}/{}/<id>".format(url_prefix, resources)
                 http_method = self.register_method[name]
-                view_func = self._make_function(http_method, name, method, decorators)
+                view_func = self._make_function(http_method, name,
+                                                method, decorators)
             elif getattr(method, "__is_action__", False) is True:
                 name = getattr(method, "__action_name__")
                 rule = "{}/{}/<id>/{}".format(url_prefix, resources, name)
                 http_method = getattr(method, "__action_method__")
-                view_func = self._make_function(http_method, name, method, decorators)
+                view_func = self._make_function(http_method, name,
+                                                method, decorators)
             else:
                 continue
             rules.append((rule, name, view_func))
@@ -79,16 +87,19 @@ class FlaskAPIClass(object):
                        origin_method, decorators):
         res_func = (lambda method_name=method_name, request=request,
                     origin_method=origin_method, http_method=http_method, **kwargs:
-                    self._execute_function(origin_method, method_name, request, http_method, **kwargs))
+                    self._execute_function(origin_method, method_name,
+                                           request, http_method, **kwargs))
         if decorators:
             for decorator in decorators:
                 res_func = decorator(res_func)
         return res_func
 
-    def _execute_function(self, origin_method, method_name, request, http_method, **kwargs):
+    def _execute_function(self, origin_method, method_name,
+                          request, http_method, **kwargs):
         exec_func = getattr(self, method_name)
         if not (exec_func == origin_method):
-            raise ValueError("this member method has something wrong and don't match")
+            raise ValueError("this member method has something "
+                             "wrong and don't match")
 
         if http_method in ("POST", "DELETE", "PUT"):
             # if force set True will ignore mimetype, slient set True will
@@ -153,6 +164,7 @@ class Jar(object):
         args = args or []
         kwargs = kwargs or {}
         decorators = decorators or []
+
         def wrapper(obj_class):
             if obj_class.__name__ not in self.register_class:
                 self.register_class[obj_class.__name__] = blueprint
@@ -163,10 +175,11 @@ class Jar(object):
             if not issubclass(obj_class, FlaskAPIClass):
                 raise TypeError("objectClass should be inherited FlaskAPIClass")
             obj_instance = obj_class(*args, **kwargs)
-            return self._register(obj_instance, resource, resources,
-                                  blueprint, decorators)
+            self._register(obj_instance, resource, resources, blueprint, decorators)
+            return obj_class
         return wrapper
 
     def _register(self, obj_instance, resource, resources, blueprint, decorators):
-        rules = obj_instance._register_url_rule(resource, resources, blueprint,
-                                                decorators, self.flask_app)
+        rules = obj_instance._register_url_rule(
+            resource, resources, blueprint, decorators, self.flask_app)
+        return rules

@@ -85,3 +85,14 @@ def test_api_raise_value_error():
         @jar.register(blueprint=test1_bp, resource="first")
         class Test3API(FlaskAPIClass):
             pass
+
+
+def test_jar_register_return_class():
+    """
+    same class name use different should raise ValueError
+    """
+    @jar.register(blueprint=test1_bp, resource="first")
+    class Test4API(FlaskAPIClass):
+        pass
+
+    assert isinstance(Test4API(), FlaskAPIClass) == True
