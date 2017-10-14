@@ -23,7 +23,7 @@ def test_raise_value_error(schema_base):
 def test_validate_false(schema_base):
     # One
     schema_base.config_schema = list()
-    assert schema_base.validate() is False
+    assert schema_base.is_validate() == False
 
     # Two
     config_schema = {
@@ -41,6 +41,6 @@ def test_validate_false(schema_base):
         }
     }
     schema_base.config_schema = config_schema
-    assert schema_base.validate() is False
+    assert schema_base.is_validate() == False
 
 

@@ -3,9 +3,9 @@
 import json
 import pytest
 import urllib
-from flask import Blueprint, Flask, render_template, url_for, jsonify
+from flask import Blueprint, Flask, render_template, url_for
 
-from contrib.base import FlaskAPIClass, Jar
+from flask_schema.contrib.base import FlaskAPIClass, Jar
 
 
 flask_app = Flask(__name__)
@@ -49,7 +49,7 @@ def url_map():
         link = urllib.unquote("{:50s} {:20s} {}".format(rule.endpoint, methods, url))
         print link
         links.append(link)
-    #return jsonify(links)
+    # return jsonify(links)
 
 
 @pytest.fixture
