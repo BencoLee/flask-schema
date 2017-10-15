@@ -155,6 +155,33 @@ class Jar(object):
         self.name = name
         self.flask_app = flask_app
         self.register_class = dict()
+        self._site_maps = dict()
+
+        self.add_site_maps()
+
+    def register_site_maps(self):
+        self.flask_app.add_url_rule(
+            "/site-maps", endpoint="site-maps",
+            view_func=self.show_site_maps
+        )
+
+    def add_to_site_maps(self, resource_name, url_prefix, rules,
+                         input_schema=None, output_schema=None):
+        absoluate_key = "{}-{}".format(url_prefix, resource_name)
+        value_dict = {
+            "name": resource_name,
+            "url_prefix": url_prefix,
+            "rules": rules
+        }
+        if input_schema:
+            value_dict.update({"input_schema": input_schema})
+        if output_schema:
+            value_dict.update({"output_schema": output_schema})
+
+        self._site_maps[absoluate_key] = value_dict
+
+    def show_site_maps(self):
+        return jsonify(self._site_maps)
 
     def register(self, blueprint=None, resource=None, resources=None,
                  input_schema=None, output_schema=None,
@@ -179,7 +206,9 @@ class Jar(object):
             if not issubclass(obj_class, FlaskAPIClass):
                 raise ValueError("objectClass should be inherited FlaskAPIClass")
             obj_instance = obj_class(*args, **kwargs)
-            self._register(obj_instance, resource, resources, blueprint, decorators)
+            rules = self._register(obj_instance, resource, resources, blueprint, decorators)
+            self.add_to_site_maps(resource or resources, blueprint.url_prefix,
+                                  rules, input_schema, output_schema)
             return obj_class
         return wrapper
 
