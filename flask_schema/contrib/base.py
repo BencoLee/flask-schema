@@ -4,6 +4,8 @@ import inspect
 from abc import abstractmethod
 from flask import Blueprint, request, Response, jsonify
 
+from flask_schema.contrib.utils import Singleton
+
 
 class FlaskAPIClass(object):
 
@@ -147,6 +149,8 @@ class FlaskAPIClass(object):
 
 class Jar(object):
 
+    __metaclass__ = Singleton
+
     def __init__(self, flask_app, name):
         self.name = name
         self.flask_app = flask_app
@@ -173,7 +177,7 @@ class Jar(object):
                     raise ValueError("An blueprint should only be registered in a class")
 
             if not issubclass(obj_class, FlaskAPIClass):
-                raise TypeError("objectClass should be inherited FlaskAPIClass")
+                raise ValueError("objectClass should be inherited FlaskAPIClass")
             obj_instance = obj_class(*args, **kwargs)
             self._register(obj_instance, resource, resources, blueprint, decorators)
             return obj_class

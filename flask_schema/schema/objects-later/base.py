@@ -4,6 +4,7 @@
 TODO will be provide later
 """
 
+
 class MetaType(type):
 
     def __new__(cls, name, bases, attrs):
@@ -11,4 +12,4 @@ class MetaType(type):
 
 
 class BaseType(object):
-    __metaclass__  = MetaType
+    __metaclass__ = MetaType

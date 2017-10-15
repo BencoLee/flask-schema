@@ -2,6 +2,19 @@
 # encoding: utf-8
 
 
+class Singleton(type):
+
+    def __init__(self, name, bases, attrs):
+        super(Singleton, self).__init__(name, bases, attrs)
+        self._registers = {}
+
+    def __call__(self, *args, **kwargs):
+        if self not in self._registers:
+            obj = super(Singleton, self).__call__(*args, **kwargs)
+            self._registers[self] = obj
+        return self._registers[self]
+
+
 def action(action_name, action_method):
     def wrapper(func):
         func.__is_action__ = True
