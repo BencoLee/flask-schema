@@ -157,11 +157,11 @@ class Jar(object):
         self.register_class = dict()
         self._site_maps = dict()
 
-        self.add_site_maps()
+        self.register_site_maps()
 
     def register_site_maps(self):
         self.flask_app.add_url_rule(
-            "/site-maps", endpoint="site-maps",
+            "/site_maps", endpoint="site_maps",
             view_func=self.show_site_maps
         )
 

@@ -3,10 +3,11 @@
 import json
 import pytest
 import urllib
-from flask import Blueprint, Flask, render_template, url_for
-
+from flask import (
+    jsonify, render_template, url_for,
+    Blueprint, Flask
+)
 from flask_schema.contrib.base import FlaskAPIClass, Jar
-from flask_schema.contrib.utils import Singleton
 
 
 flask_app = Flask(__name__)
@@ -50,7 +51,7 @@ def url_map():
         link = urllib.unquote("{:50s} {:20s} {}".format(rule.endpoint, methods, url))
         print link
         links.append(link)
-    # return jsonify(links)
+    return jsonify(links)
 
 
 @pytest.fixture
@@ -97,14 +98,3 @@ def test_jar_register_return_class():
         pass
 
     assert isinstance(Test4API(), FlaskAPIClass) == True
-
-
-def test_singleton():
-
-    class TestClass(object):
-        __metaclass__ = Singleton
-
-    obj1 = TestClass()
-    obj2 = TestClass()
-
-    assert obj1 == obj2

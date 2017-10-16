@@ -42,5 +42,3 @@ def test_validate_false(schema_base):
     }
     schema_base.config_schema = config_schema
     assert schema_base.is_validate() == False
-
-
