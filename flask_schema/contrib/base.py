@@ -2,7 +2,7 @@
 # encoding: utf-8
 import inspect
 from abc import abstractmethod
-from flask import Blueprint, request, Response, jsonify
+from flask import Blueprint, request, Response, jsonify, url_for
 
 from flask_schema.contrib.utils import Singleton
 
@@ -31,13 +31,21 @@ class FlaskAPIClass(object):
                                                      decorators, obj_members)
 
         rules = rules or []
-        for rule, name, view_func in rules:
+        res = {}
+        for rule, name, http_method, view_func in rules:
+            endpoint = "_".join((blueprint_name, name))
             flask_app.add_url_rule(
                 rule=rule,
-                endpoint="_".join((blueprint_name, name)),
+                endpoint=endpoint,
                 view_func=view_func
             )
-        return rules
+            res[name] = {
+                "method_name": name,
+                "url": rule,
+                "endpoint": endpoint,
+                "http_method": http_method
+            }
+        return res
 
     def _deal_with_singluar_resource(self, url_prefix, resource,
                                      decorators, members):
@@ -58,7 +66,7 @@ class FlaskAPIClass(object):
                                                 method, decorators)
             else:
                 continue
-            rules.append((rule, name, view_func))
+            rules.append((rule, name, http_method, view_func))
         return rules
 
     def _deal_with_plural_resources(self, url_prefix, resources,
@@ -82,7 +90,7 @@ class FlaskAPIClass(object):
                                                 method, decorators)
             else:
                 continue
-            rules.append((rule, name, view_func))
+            rules.append((rule, name, http_method, view_func))
         return rules
 
     def _make_function(self, http_method, method_name,
@@ -167,7 +175,7 @@ class Jar(object):
 
     def add_to_site_maps(self, resource_name, url_prefix, rules,
                          input_schema=None, output_schema=None):
-        absoluate_key = "{}-{}".format(url_prefix, resource_name)
+        absoluate_key = "{}.{}".format(url_prefix, resource_name)
         value_dict = {
             "name": resource_name,
             "url_prefix": url_prefix,
@@ -181,7 +189,7 @@ class Jar(object):
         self._site_maps[absoluate_key] = value_dict
 
     def show_site_maps(self):
-        return jsonify(self._site_maps)
+        return jsonify(self._site_maps), 200
 
     def register(self, blueprint=None, resource=None, resources=None,
                  input_schema=None, output_schema=None,

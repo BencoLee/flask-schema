@@ -40,6 +40,9 @@ class Test3API(FlaskAPIClass):
         return id
 
 
+@jar.register(blueprint=test4_bp, resource="forth")
+class Test4API(FlaskAPIClass):
+    pass
 
 
 @flask_app.route("/")
@@ -62,21 +65,21 @@ def client():
     return flask_app.test_client()
 
 
-def test_api_show_1(client):
+def test_api_show_first(client):
     url_path = "/api/v1/test1/first"
     r = client.get(url_path)
     assert json.loads(r.data) == return_value
 
 
-def test_api_show_2(client):
-    url_path = "api/v1/test2/second"
+def test_api_show_second(client):
+    url_path = "/api/v1/test2/second"
     r = client.get(url_path)
     assert r.status_code == 200
 
 
-def test_api_show_3(client):
+def test_api_show_third(client):
     _id = 3
-    url_path = "api/v1/test3/third/{}".format(_id)
+    url_path = "/api/v1/test3/third/{}".format(_id)
     r = client.get(url_path)
     r = json.loads(r.data)
     assert int(r) == _id
@@ -96,8 +99,64 @@ def test_jar_register_return_class():
     """
     same class name use different should raise ValueError
     """
-    @jar.register(blueprint=test1_bp, resource="first")
-    class Test4API(FlaskAPIClass):
-        pass
 
     assert isinstance(Test4API(), FlaskAPIClass) == True
+    assert issubclass(Test4API, FlaskAPIClass) == True
+
+
+@pytest.mark.parametrize(
+    "expect_value",
+    [
+        {
+            "/api/v1/test1.first": {
+                "name": "first",
+                "url_prefix": "/api/v1/test1",
+                "rules": {
+                    "show": {
+                        "endpoint": "api_v1_test1_show",
+                        "http_method": "GET",
+                        "method_name": "show",
+                        "url": "/api/v1/test1/first"
+                    }
+                }
+            },
+            "/api/v1/test2.second": {
+                "name": "second",
+                "url_prefix": "/api/v1/test2",
+                "rules": {
+                    "show": {
+                        "endpoint": "api_v1_test2_show",
+                        "http_method": "GET",
+                        "method_name": "show",
+                        "url": "/api/v1/test2/second"
+                    }
+                }
+            },
+            "/api/v1/test3.third": {
+                "name": "third",
+                "url_prefix": "/api/v1/test3",
+                "rules": {
+                    "show": {
+                        "endpoint": "api_v1_test3_show",
+                        "http_method": "GET",
+                        "method_name": "show",
+                        "url": "/api/v1/test3/third/<id>"
+                    }
+                }
+            },
+            "/api/v1/test4.forth": {
+                "name": "forth",
+                "url_prefix": "/api/v1/test4",
+                "rules": {}
+            }
+        }
+    ]
+)
+def test_site_map(client, expect_value):
+    url_path = "/site_maps"
+    r = client.get(url_path)
+    assert r.status_code == 200
+
+    r = json.loads(r.data)
+    assert isinstance(r, dict)
+    assert r == expect_value
