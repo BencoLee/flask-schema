@@ -15,6 +15,7 @@ jar = Jar(flask_app, __name__)
 test1_bp = Blueprint("api_v1_test1", __name__, url_prefix="/api/v1/test1")
 test2_bp = Blueprint("api_v1_test2", __name__, url_prefix="/api/v1/test2")
 test3_bp = Blueprint("api_v1_test3", __name__, url_prefix="/api/v1/test3")
+test4_bp = Blueprint("api_v1_test4", __name__, url_prefix="/api/v1/test4")
 return_value = "<h1>Hello, World</h1>"
 
 
@@ -37,6 +38,8 @@ class Test3API(FlaskAPIClass):
 
     def show(self, web_request, data, id, **kwargs):
         return id
+
+
 
 
 @flask_app.route("/")

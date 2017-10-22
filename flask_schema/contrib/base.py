@@ -213,6 +213,6 @@ class Jar(object):
         return wrapper
 
     def _register(self, obj_instance, resource, resources, blueprint, decorators):
-        rules = obj_instance._register_url_rule(
-            resource, resources, blueprint, decorators, self.flask_app)
+        rules = obj_instance._register_url_rule(resource, resources, blueprint,
+                                                decorators, self.flask_app)
         return rules

@@ -2,7 +2,7 @@
 # encoding: utf-8
 from flask import Flask
 
-from contrib.base import FlaskAPIClass, Jar
+from flask_app.contrib.base import FlaskAPIClass, Jar
 
 
 flask_app = Flask(__name__)
