@@ -14,7 +14,7 @@ flask_app = Flask(__name__)
 jar = Jar(flask_app, __name__)
 test1_bp = Blueprint("api_v1_test1", __name__, url_prefix="/api/v1/test1")
 test2_bp = Blueprint("api_v1_test2", __name__, url_prefix="/api/v1/test2")
-test3_bp = Blueprint("api_v1_test3", __name__, url_prefix="/api/v1/test3")
+test3_bp = Blueprint("api_v1_test3", __name__, url_prefix="/api/v1/test3/<name>")
 test4_bp = Blueprint("api_v1_test4", __name__, url_prefix="/api/v1/test4")
 return_value = "<h1>Hello, World</h1>"
 
@@ -36,8 +36,8 @@ class Test2API(FlaskAPIClass):
 @jar.register(blueprint=test3_bp, resources="third")
 class Test3API(FlaskAPIClass):
 
-    def show(self, web_request, data, id, **kwargs):
-        return id
+    def show(self, web_request, data, id, name, **kwargs):
+        return {"id": id, "name": name}
 
 
 @jar.register(blueprint=test4_bp, resource="forth")
@@ -79,10 +79,13 @@ def test_api_show_second(client):
 
 def test_api_show_third(client):
     _id = 3
-    url_path = "/api/v1/test3/third/{}".format(_id)
+    _name = "test_name"
+    url_path = "/api/v1/test3/{}/third/{}".format(_name, _id)
     r = client.get(url_path)
     r = json.loads(r.data)
-    assert int(r) == _id
+    assert r == {
+        "id": _id, "name": _name
+    }
 
 
 def test_api_raise_value_error():
@@ -108,7 +111,7 @@ def test_jar_register_return_class():
     "expect_value",
     [
         {
-            "/api/v1/test1.first": {
+            "/api/v1/test1/first": {
                 "name": "first",
                 "url_prefix": "/api/v1/test1",
                 "rules": {
@@ -116,11 +119,10 @@ def test_jar_register_return_class():
                         "endpoint": "api_v1_test1_show",
                         "http_method": "GET",
                         "method_name": "show",
-                        "url": "/api/v1/test1/first"
                     }
                 }
             },
-            "/api/v1/test2.second": {
+            "/api/v1/test2/second": {
                 "name": "second",
                 "url_prefix": "/api/v1/test2",
                 "rules": {
@@ -128,23 +130,21 @@ def test_jar_register_return_class():
                         "endpoint": "api_v1_test2_show",
                         "http_method": "GET",
                         "method_name": "show",
-                        "url": "/api/v1/test2/second"
                     }
                 }
             },
-            "/api/v1/test3.third": {
+            "/api/v1/test3/<name>/third": {
                 "name": "third",
-                "url_prefix": "/api/v1/test3",
+                "url_prefix": "/api/v1/test3/<name>",
                 "rules": {
                     "show": {
                         "endpoint": "api_v1_test3_show",
                         "http_method": "GET",
                         "method_name": "show",
-                        "url": "/api/v1/test3/third/<id>"
                     }
                 }
             },
-            "/api/v1/test4.forth": {
+            "/api/v1/test4/forth": {
                 "name": "forth",
                 "url_prefix": "/api/v1/test4",
                 "rules": {}

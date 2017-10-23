@@ -41,7 +41,6 @@ class FlaskAPIClass(object):
             )
             res[name] = {
                 "method_name": name,
-                "url": rule,
                 "endpoint": endpoint,
                 "http_method": http_method
             }
@@ -78,7 +77,7 @@ class FlaskAPIClass(object):
                 if name in ("index", ):
                     rule = "{}/{}".format(url_prefix, resources)
                 else:
-                    rule = "{}/{}/<id>".format(url_prefix, resources)
+                    rule = "{}/{}/<int:id>".format(url_prefix, resources)
                 http_method = self.register_method[name]
                 view_func = self._make_function(http_method, name,
                                                 method, decorators)
@@ -175,14 +174,19 @@ class Jar(object):
 
     def add_to_site_maps(self, resource_name, url_prefix, rules,
                          input_schema=None, output_schema=None):
-        absoluate_key = "{}.{}".format(url_prefix, resource_name)
+        absoluate_key = "{}/{}".format(url_prefix, resource_name)
         value_dict = {
             "name": resource_name,
             "url_prefix": url_prefix,
             "rules": rules
         }
-        if input_schema:
-            value_dict.update({"input_schema": input_schema})
+        if (input_schema and
+            input_schema.is_valid_input_schema and
+            input_schema.is_valid_methods_schema):
+
+            input_methods = input_schema.get_methods_schema()
+            value_dict.update({"input_schema": input_methods})
+
         if output_schema:
             value_dict.update({"output_schema": output_schema})
 
@@ -213,14 +217,11 @@ class Jar(object):
 
             if not issubclass(obj_class, FlaskAPIClass):
                 raise ValueError("objectClass should be inherited FlaskAPIClass")
+
             obj_instance = obj_class(*args, **kwargs)
-            rules = self._register(obj_instance, resource, resources, blueprint, decorators)
+            rules = obj_instance._register_url_rule(resource, resources,
+                                                    blueprint, decorators, self.flask_app)
             self.add_to_site_maps(resource or resources, blueprint.url_prefix,
                                   rules, input_schema, output_schema)
             return obj_class
         return wrapper
-
-    def _register(self, obj_instance, resource, resources, blueprint, decorators):
-        rules = obj_instance._register_url_rule(resource, resources, blueprint,
-                                                decorators, self.flask_app)
-        return rules
