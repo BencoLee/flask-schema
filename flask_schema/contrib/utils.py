@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
+import requests
 
 
 class Singleton(type):
@@ -15,21 +16,28 @@ class Singleton(type):
         return self._registers[self]
 
 
-def action(action_name, action_method):
+class SimpleClient(object):
+
+    __metaclass__ = Singleton
+
+    session = None
+
+    def __new__(cls, *args, **kwargs):
+        obj = super(SimpleClient, cls).__new__(cls, *args, **kwargs)
+        if cls.session is None:
+            cls.session = requests.Session()
+        return obj
+
+    def get_site_maps(self):
+        url = "http://localhost:5000/site_maps"
+        resp = self.session.get(url)
+        return resp.json()
+
+
+def extra_action(action_name, action_method):
     def wrapper(func):
         func.__is_action__ = True
         func.__action_name = action_name
         func.__action_method = action_method
         return func
     return wrapper
-
-
-if __name__ == "__name__":
-    @action("foo", "bar")
-    def test(*args, **kwargs):
-        print args, kwargs
-
-
-    print dir(test)
-    print test.__dict__
-    print test.__name__

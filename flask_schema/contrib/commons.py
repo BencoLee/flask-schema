@@ -80,18 +80,20 @@ class URLResourceTree(object):
 
     __metaclass__ = Singleton
 
-    def __init__(self, urls, url_prefix="/api/v1"):
+    def __init__(self, url_prefix="/api/v1"):
         self.tree_root = TreeNode(url_prefix)
-        self.urls = self._reduce_url_prefix(urls, url_prefix)
 
     @staticmethod
-    def _reduce_url_prefix(self, urls, url_prefix):
+    def _reduce_url_prefix(urls, url_prefix):
         return map(lambda x: x.split(url_prefix)[-1], urls)
 
-    def build_url_tree(self):
-        for url in self.urls:
+    def build_url_tree(self, urls):
+        for url in self._reduce_url_prefix(urls, self.url_prefix):
             url_list = url.split('/')
             TreeNode.insert(self.tree_root, url_list)
+
+
+url_tree = URLResourceTree()
 
 
 def test():

@@ -153,7 +153,7 @@ def test_jar_register_return_class():
     ]
 )
 def test_site_map(client, expect_value):
-    url_path = "/site_maps"
+    url_path = "http://localhost:5000/site_maps"
     r = client.get(url_path)
     assert r.status_code == 200
 
