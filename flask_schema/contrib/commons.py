@@ -94,10 +94,3 @@ class URLResourceTree(object):
 
 
 url_tree = URLResourceTree()
-
-
-def test():
-    root = TreeNode("api.v1")
-    chains = ["test1", "<name>", "first", "<int:id>"]
-    TreeNode.insert(root, chains)
-    print(TreeNode.search(root, chains))
