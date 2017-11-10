@@ -25,6 +25,7 @@ EXAMPLES:
                 }
             }
 '''
+import requests
 from flask_schema.contrib.utils import Singleton
 
 
@@ -93,4 +94,18 @@ class URLResourceTree(object):
             TreeNode.insert(self.tree_root, url_list)
 
 
-url_tree = URLResourceTree()
+class ResClient(object):
+
+    __metaclass__ = Singleton
+
+    def __init__(self, host="localhost", port=8888):
+        self.host = host
+        self.port = port
+        self.headers = {"Content-type": "application/json"}
+        self.session = requests.Session()
+
+    def generate_url(self, url, kwargs):
+        pass
+
+    def send_requests(self, url, method, kwargs=None, headers=None):
+        pass
