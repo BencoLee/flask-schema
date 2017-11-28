@@ -40,6 +40,8 @@ class InputSchemaBase(SchemaBase):
         else:
             self.validator = validator
 
+        self.is_valid_input_schema = False
+        self.is_valid_methods_schema = False
         self.check_schema_validation()
 
     def get_method_from_schema(self, selection):
@@ -56,6 +58,9 @@ class InputSchemaBase(SchemaBase):
                 "{} method".format(selection))
         else:
             return method_schema
+
+    def get_methods_schema(self):
+        return self.input_schema.get("methods", None)
 
     def check_schema_validation(self):
         input_schema, validator = self.input_schema, self.validator

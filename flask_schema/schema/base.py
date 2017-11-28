@@ -37,3 +37,6 @@ class SchemaBase(object):
 
     def check_schema_validation(self):
         raise NotImplementedError
+
+    def get_methods_schema(self):
+        raise NotImplementedError
